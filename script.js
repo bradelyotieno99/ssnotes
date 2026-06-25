@@ -1,284 +1,256 @@
-It looks like you pasted a Git Diff / patch log (with all the `+` and `-` symbols) where you were trying to merge the old code with the new code. Because of those mixed lines, your JavaScript file is currently broken and will throw major syntax errors.
-
-Let's clean that up entirely and **fully complete the Grade 9 CBC CRE Syllabus (Unit 1)** so your application runs flawlessly.
-
-Here is the fully resolved, production-ready JavaScript code. Copy everything below and replace your entire file with it.
-
-```javascript
-// ==========================================
-// 1. HISTORICAL NAVIGATION SYSTEM (THE MEMORY STACK)
-// ==========================================
-let navigationHistoryStack = [{ view: 'home', data: null }]; 
-const mainContainerView = document.getElementById("app-view");
-
-// Complete Curriculum Lists for Kenya
-const classesData = {
-    cbc: ["PP1", "PP2", "Grade 1", "Grade 2", "Grade 3", "Grade 4", "Grade 5", "Grade 6", "Grade 7", "Grade 8", "Grade 9", "Grade 10", "Grade 11", "Grade 12"],
-    844: ["Form 1", "Form 2", "Form 3", "Form 4"]
-};
-
-const subjectsData = {
-    cbc: ["Mathematics", "English", "Kiswahili", "Integrated Science", "Social Studies", "Pre-Technical Studies", "CRE", "Creative Arts and Sports", "Agriculture and Nutrition"],
-    844: ["Mathematics", "English", "Kiswahili", "Biology", "Chemistry", "Physics", "History & Government", "Geography", "Business Studies"]
-};
-
-// ==========================================
-// 2. ROUTER ENGINE
-// ==========================================
-function navigateToView(viewId, payload = null, pushToHistory = true) {
-    if (pushToHistory) {
-        const lastState = navigationHistoryStack[navigationHistoryStack.length - 1];
-        
-        // Deep string comparison to safely prevent duplicate screens
-        const isDuplicate = lastState && 
-                            lastState.view === viewId && 
-                            JSON.stringify(lastState.data) === JSON.stringify(payload);
-
-        if (!isDuplicate) {
-            navigationHistoryStack.push({ view: viewId, data: payload });
-        }
-    }
-
-    // Clear the screen cleanly
-    if (mainContainerView) mainContainerView.innerHTML = ""; 
-
-    // Route matching
-    if (viewId === 'home') {
-        renderHomeMenuScreen();
-    } else if (viewId === 'classes_menu') {
-        renderClassesMenuScreen(payload);
-    } else if (viewId === 'subjects_menu') {
-        renderSubjectsMenuScreen(payload);
-    } else if (viewId === 'notes_reader') {
-        renderNotesReaderScreen(payload);
-    }
+/* Core Color Variables Configuration */
+:root {
+    --bg-dark-blue: #0B192C;
+    --card-dark-blue: #1E3E62;
+    --text-white: #FFFFFF;
+    --accent-blue: #008DDA;
+    --text-dark: #1E293B;
+    --bg-light: #F8FAFC;
+    --card-light: #FFFFFF;
 }
 
-// ==========================================
-// 3. HOME SCREEN RENDERER (CBC vs 8-4-4)
-// ==========================================
-function renderHomeMenuScreen() {
-    const homeView = document.createElement("div");
-    homeView.className = "split-home-view";
-
-    homeView.innerHTML = `
-        <div class="curriculum-card">
-            <h2>CBC</h2>
-            <button class="nav-selection-btn" id="btn-cbc">Open CBC</button>
-        </div>
-        <div class="curriculum-card">
-            <h2>8-4-4</h2>
-            <button class="nav-selection-btn" id="btn-844">Open 8-4-4</button>
-        </div>
-    `;
-    mainContainerView.appendChild(homeView);
-
-    document.getElementById("btn-cbc").onclick = () => navigateToView('classes_menu', { system: 'cbc' });
-    document.getElementById("btn-844").onclick = () => navigateToView('classes_menu', { system: '844' });
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
 }
 
-// ==========================================
-// 4. CLASSES SCREEN RENDERER
-// ==========================================
-function renderClassesMenuScreen(payload) {
-    if (!payload || !payload.system) return navigateToView('home'); 
-
-    const headerTitle = payload.system === 'cbc' ? "Competency Based Curriculum (PP1 - Grade 12)" : "8-4-4 Education System (Form 1 - 4)";
-    const targetClasses = classesData[payload.system] || [];
-
-    const wrapper = document.createElement("div");
-    wrapper.innerHTML = `<h3 class="directory-header">${headerTitle}</h3>`;
-    
-    const grid = document.createElement("div");
-    grid.className = "selection-grid";
-
-    targetClasses.forEach(className => {
-        const item = document.createElement("div");
-        item.className = "grid-item-card";
-        item.innerText = className;
-        item.onclick = () => navigateToView('subjects_menu', { system: payload.system, class: className });
-        grid.appendChild(item);
-    });
-
-    wrapper.appendChild(grid);
-    mainContainerView.appendChild(wrapper);
+/* Base Body Modes */
+body.dark-mode {
+    background-color: var(--bg-dark-blue);
+    color: var(--text-white);
 }
 
-// ==========================================
-// 5. SUBJECTS SCREEN RENDERER
-// ==========================================
-function renderSubjectsMenuScreen(payload) {
-    if (!payload || !payload.system || !payload.class) return navigateToView('home');
-
-    const wrapper = document.createElement("div");
-    wrapper.innerHTML = `<h3 class="directory-header">${payload.class} — Course Subjects</h3>`;
-    
-    const grid = document.createElement("div");
-    grid.className = "selection-grid";
-
-    const targetSubjects = subjectsData[payload.system] || [];
-
-    targetSubjects.forEach(subjectName => {
-        const item = document.createElement("div");
-        item.className = "grid-item-card";
-        item.innerText = subjectName;
-        item.onclick = () => navigateToView('notes_reader', { system: payload.system, class: payload.class, subject: subjectName });
-        grid.appendChild(item);
-    });
-
-    wrapper.appendChild(grid);
-    mainContainerView.appendChild(wrapper);
+body.light-mode {
+    background-color: var(--bg-light);
+    color: var(--text-dark);
 }
 
-// ==========================================
-// 6. NOTES CONTENT SCREEN RENDERER (COMPLETE CRE PORTAL)
-// ==========================================
-function renderNotesReaderScreen(payload) {
-    if (!payload) return navigateToView('home');
-
-    const wrapper = document.createElement("div");
-    wrapper.className = "notes-view-wrapper";
-
-    let generatedNotesHTML = "";
-
-    // --- GRADE 9 CRE NOTES COMPLETE ---
-    if (payload.subject === "CRE") {
-        generatedNotesHTML = `
-            <div class="notes-title-meta">
-                <h2>${payload.class} — ${payload.subject} Complete Study Vault</h2>
-                <p>Curriculum Architecture: Christian Religious Education Moral-Values Framework</p>
-            </div>
-            
-            <div class="note-section-block">
-                <h4>Unit 1: Leadership Models in the Old Testament</h4>
-                <p>This unit analyzes the specific characters, duties, shortcomings, and lessons learned from leaders appointed by God to lead and guide the Israelites.</p>
-                
-                <div class="formula-highlight-box" style="background: rgba(0,0,0,0.04); border-left: 4px solid #7f5af0; padding: 12px; margin: 15px 0; border-radius: 4px;">
-                    <strong>The 3 Core Pillars of Old Testament Leadership:</strong><br>
-                    1. <strong>Direct Divine Calling:</strong> Appointed through God's personal selection, not public votes.<br>
-                    2. <strong>Moral Integrity:</strong> Standing up for absolute justice, honesty, and biblical boundaries.<br>
-                    3. <strong>Prophetic Courage:</strong> Willingness to confront and correct tribal leaders or kings when they disobey God.
-                </div>
-
-                <h5>Case Study 1: The Call of Prophet Jeremiah</h5>
-                <p>God reveals to Jeremiah that his life purpose was designated before he was formed in the womb (Jeremiah 1:5). Jeremiah initially objects due to his young age and poor speaking abilities, but God touches his mouth and promises divine protection.</p>
-                
-                <blockquote style="border-left: 3px solid #2cb67d; padding-left: 10px; font-style: italic; color: #666; margin: 10px 0;">
-                    "Do not say, 'I am too young.' You must go to everyone I send you to and say whatever I command you." — Jeremiah 1:7
-                </blockquote>
-
-                <h5>Case Study 2: King David's Model of Leadership</h5>
-                <p>David is highlighted as a passionate leader with a heart for God. However, his leadership faced severe downfalls (the Bathsheba and Uriah incident). His defining legacy is his <strong>repentance</strong> and structural accountability when confronted by Prophet Nathan.</p>
-
-                <div class="shortcut-tip-box" style="background: rgba(255, 193, 7, 0.15); border-left: 4px solid #ffc107; padding: 12px; margin: 15px 0; border-radius: 4px;">
-                    <strong>💡 Easy Exam Review Tip (The 3 Cs of OT Leaders):</strong><br>
-                    When preparing for assessments, evaluate every leader across these metrics: <strong>C</strong>alling, <strong>C</strong>haracter flaws, and <strong>C</strong>ourageous acts!
-                </div>
-            </div>
-        `;
-    } 
-    // --- GRADE 9 PRE-TECHNICAL STUDIES ---
-    else if (payload.subject === "Pre-Technical Studies") {
-        generatedNotesHTML = `
-            <div class="notes-title-meta">
-                <h2>${payload.class} — ${payload.subject} Notes</h2>
-                <p>Curriculum Architecture: Junior Secondary School Engineering & Technical Strands</p>
-            </div>
-            <div class="note-section-block">
-                <h4>Unit 1: Foundations of Technical Drawing</h4>
-                <p>Technical drawing is a precise graphic language used by designers and engineers to convey exact sizes and structural features of products.</p>
-                <div class="formula-highlight-box">
-                    Standard Projections Used in Kenya:<br>
-                    • First-Angle Projection (Standard British/Kenyan format)<br>
-                    • Third-Angle Projection (Standard American format)
-                </div>
-                <p><strong>Orthographic Projection:</strong> A way of drawing a 3D object by flattening it into separate 2D perspective blocks: the Front Elevation, Side Elevation, and Plan View.</p>
-            </div>
-        `;
-    } 
-    // --- GRADE 9 MATHEMATICS ROUTING ---
-    else if (payload.class === "Grade 9" && payload.subject === "Mathematics") {
-        generatedNotesHTML = `
-            <div class="notes-title-meta">
-                <h2>${payload.class} — ${payload.subject} Complete Notes</h2>
-                <p>Curriculum Architecture: Kenyan National CBC Strand Implementation Framework</p>
-            </div>
-            <div class="note-section-block">
-                <h4>Unit 1: Linear Inequalities in One Variable</h4>
-                <p>An inequality is a statement comparing mathematical values using size comparison operators rather than a standard equals sign.</p>
-            </div>
-        `;
-    } 
-    // --- FORM 4 MATHEMATICS ROUTING (8-4-4) ---
-    else if (payload.class === "Form 4" && payload.subject === "Mathematics") {
-        generatedNotesHTML = `
-            <div class="notes-title-meta">
-                <h2>${payload.class} — ${payload.subject} Complete Notes</h2>
-                <p>Curriculum Architecture: National 8-4-4 KCSE Examination Review Framework</p>
-            </div>
-            <div class="note-section-block">
-                <h4>Chapter 3: Three Dimensional Geometry & Trigonometry</h4>
-                <p>This unit examines measuring projections, intersecting vectors lines, and computing angles formed between straight lines and flat surfaces.</p>
-            </div>
-        `;
-    } 
-    // --- GENERAL CATCH-ALL PLACEHOLDER ---
-    else {
-        generatedNotesHTML = `
-            <div class="notes-title-meta">
-                <h2>${payload.class} — ${payload.subject} Unit Portal</h2>
-                <p>Curriculum System Index: ${payload.system ? payload.system.toUpperCase() : ''}</p>
-            </div>
-            <div class="note-section-block">
-                <h4>Instructional Syllabus Summary Document</h4>
-                <p>Welcome to the SSNotes learning vault portal for ${payload.class} ${payload.subject}. Detailed notes, core formulas, interactive diagrams, and simplified memory tricks for this unit are being prepared for publishing.</p>
-            </div>
-        `;
-    }
-
-    wrapper.innerHTML = generatedNotesHTML;
-    mainContainerView.appendChild(wrapper);
+/* Header Navbar Architecture */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 5%;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+body.light-mode .navbar {
+    border-bottom: 2px solid rgba(0, 0, 0, 0.05);
+    background-color: var(--card-light);
 }
 
-// ==========================================
-// 7. BUTTON CLICK EVENT HANDLERS
-// ==========================================
-const themeBtn = document.getElementById("theme-toggle");
-if (themeBtn) {
-    themeBtn.onclick = () => {
-        const targetBody = document.body;
-        if (targetBody.classList.contains("dark-mode")) {
-            targetBody.classList.replace("dark-mode", "light-mode");
-            themeBtn.innerText = "🌙 Dark Mode";
-        } else {
-            targetBody.classList.replace("light-mode", "dark-mode");
-            themeBtn.innerText = "🌓 Light Mode";
-        }
-    };
+.logo {
+    font-size: 1.8rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    cursor: pointer;
+    color: var(--accent-blue);
 }
 
-const backBtn = document.getElementById("back-btn");
-if (backBtn) {
-    backBtn.onclick = () => {
-        if (navigationHistoryStack.length > 1) {
-            navigationHistoryStack.pop(); // Remove current view state
-            const previousTargetState = navigationHistoryStack[navigationHistoryStack.length - 1];
-            navigateToView(previousTargetState.view, previousTargetState.data, false);
-        } else {
-            navigateToView('home', null, false);
-        }
-    };
+.nav-controls {
+    display: flex;
+    gap: 15px;
 }
 
-const navLogo = document.getElementById("nav-logo");
-if (navLogo) {
-    navLogo.onclick = () => {
-        navigationHistoryStack = [{ view: 'home', data: null }]; 
-        navigateToView('home', null, false);
-    };
+.control-btn {
+    background: transparent;
+    border: 1px solid var(--accent-blue);
+    color: var(--accent-blue);
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.control-btn:hover {
+    background: var(--accent-blue);
+    color: white !important;
 }
 
-// Initialize Application on page load
-navigateToView('home', null, false);
+/* App Container Workspace */
+.app-container {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
+    min-height: 70vh;
+}
 
-```
+/* Main Home Screen Split Layout */
+.split-home-view {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-top: 50px;
+}
+
+@media(max-width: 768px) {
+    .split-home-view { grid-template-columns: 1fr; }
+}
+
+/* Curriculum Card Blocks */
+.curriculum-card {
+    border-radius: 16px;
+    padding: 60px 40px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+body.dark-mode .curriculum-card {
+    background-color: var(--card-dark-blue);
+}
+body.light-mode .curriculum-card {
+    background-color: var(--card-light);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+}
+
+.curriculum-card h2 {
+    font-size: 2.5rem;
+    margin-bottom: 25px;
+    font-weight: 800;
+}
+
+/* White Dashboard Selection Buttons */
+.nav-selection-btn {
+    background-color: #FFFFFF;
+    color: var(--bg-dark-blue);
+    border: none;
+    border-radius: 30px;
+    padding: 16px 45px;
+    font-size: 1.25rem;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+.nav-selection-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+}
+
+/* Button color swapping for light mode */
+body.light-mode .nav-selection-btn {
+    background-color: var(--bg-dark-blue);
+    color: #FFFFFF;
+}
+
+/* Grid Layout for Classes and Subjects directory screens */
+.directory-header {
+    text-align: center;
+    font-size: 1.8rem;
+    margin-bottom: 30px;
+}
+
+.selection-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 20px;
+}
+
+.grid-item-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 25px 15px;
+    border-radius: 12px;
+    text-align: center;
+    font-weight: 600;
+    cursor: pointer;
+}
+.grid-item-card:hover {
+    background: var(--accent-blue);
+    color: white;
+    transform: translateY(-2px);
+}
+
+body.light-mode .grid-item-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+}
+
+/* Notes Reader View Styles */
+.notes-view-wrapper {
+    background: rgba(255,255,255,0.02);
+    border-radius: 16px;
+    padding: 40px;
+    border: 1px solid rgba(255,255,255,0.08);
+}
+body.light-mode .notes-view-wrapper {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+}
+
+.notes-title-meta {
+    border-bottom: 3px solid var(--accent-blue);
+    padding-bottom: 15px;
+    margin-bottom: 30px;
+}
+
+.note-section-block {
+    margin-bottom: 35px;
+}
+
+.note-section-block h4 {
+    color: var(--accent-blue);
+    font-size: 1.4rem;
+    margin-bottom: 12px;
+}
+
+.note-section-block p {
+    line-height: 1.7;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+    opacity: 0.9;
+}
+
+/* Formula Presentation Callout Boxes */
+.formula-highlight-box {
+    background: rgba(0, 141, 218, 0.1);
+    border-left: 5px solid var(--accent-blue);
+    padding: 20px;
+    border-radius: 0 12px 12px 0;
+    margin: 20px 0;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1.15rem;
+}
+
+/* Memory Shortcuts Box Container */
+.shortcut-tip-box {
+    background: rgba(46, 204, 113, 0.1);
+    border-left: 5px solid #2ecc71;
+    padding: 20px;
+    border-radius: 0 12px 12px 0;
+    margin: 20px 0;
+    font-size: 1.05rem;
+}
+
+/* Vector Graphic CSS Geometric Diagrams Layout Element */
+.diagram-canvas-placeholder {
+    width: 100%;
+    max-width: 400px;
+    height: 220px;
+    border: 2px dashed rgba(255,255,255,0.2);
+    margin: 25px auto;
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+body.light-mode .diagram-canvas-placeholder {
+    border: 2px dashed rgba(0,0,0,0.1);
+    background: #F1F5F9;
+}
+
+.geometric-triangle-shape {
+    width: 0;
+    height: 0;
+    border-left: 50px solid transparent;
+    border-right: 50px solid transparent;
+    border-bottom: 80px solid var(--accent-blue);
+    margin-bottom: 15px;
+}
