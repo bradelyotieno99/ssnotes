@@ -1,4 +1,4 @@
-/ 1. MEMORY BANK
+// 1. MEMORY BANK
 // Unify the structure: Everything in the stack is now an object
 let navigationHistoryStack = [{ view: 'home', data: null }]; 
 const mainContainerView = document.getElementById("app-view");
